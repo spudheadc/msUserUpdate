@@ -1,0 +1,30 @@
+{
+    "type": "record",
+    "namespace": "chapman.wattle.id.au.msuserupdate.domain",
+    "name": "UserEvents",
+    "fields": [
+      {
+        "name": "event",
+        "type": [
+          "chapman.wattle.id.au.msuserupdate.domain.UserCreated",
+          "chapman.wattle.id.au.msuserupdate.domain.UserNameEdited",
+          "chapman.wattle.id.au.msuserupdate.domain.UserPhoneEdited",
+          "chapman.wattle.id.au.msuserupdate.domain.UserEmailEdited",
+          "chapman.wattle.id.au.msuserupdate.domain.UserDeleted"
+        ]
+      },
+      {
+        "name": "userId",
+        "type": "string",
+        "doc": "A UUID identifying the user"
+      },
+      {
+        "name": "createdAt",
+        "type": {
+          "type": "long",
+          "logicalType": "timestamp-millis"
+        },
+        "doc": "The time this event occured"
+      }
+    ]
+   }

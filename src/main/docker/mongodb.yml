@@ -1,0 +1,12 @@
+# This configuration is intended for development purpose, it's **your** responsibility to harden it for production
+version: '3.8'
+services:
+  msuserupdate-mongodb:
+    image: mongo:latest
+    # If you want to expose these ports outside your dev PC,
+    # remove the "127.0.0.1:" prefix
+    ports:
+      - 27017:27017
+    container_name: msuserupdate-mongodb
+    volumes:
+      - ./../resources/mongo:/docker-entrypoint-initdb.d:ro

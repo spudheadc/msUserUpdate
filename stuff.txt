@@ -1,0 +1,40 @@
+curl -X POST -H "Content-Type: application/json"      --data '{"name": "mongo-source","config": {"connector.class":"com.mongodb.kafka.connect.MongoSourceConnector","connection.uri":"mongodb://msuserupdate-mongodb:27017/","database":"quickstart","collection":"sampleData","pipeline":"[{\"$match\": {\"operationType\": \"insert\"}}, {$addFields : {\"fullDocument.travel\":\"MongoDB Kafka Connector\"}}]"}}'      http://kafka-connect:8083/connectors -w "\n"
+
+curl -X GET http://kafka-connect:8083/connectors
+
+curl -X POST -H "Content-Type: application/json" --data '{"name": "mongo-sink","config": {"connector.class":"com.mongodb.kafka.connect.MongoSinkConnector","connection.uri":"mongodb://msuserupdate-mongodb:27017/", "database":"quickstart","collection":"topicData", "topics":"quickstart.sampleData", "change.data.capture.handler": "com.mongodb.kafka.connect.sink.cdc.mongodb.ChangeStreamHandler"}}' http://kafka-connect:8083/connectors -w "\n"
+
+curl -X POST -H "Content-Type: application/vnd.kafka.json.v2+json" --data '{"records":[{"value":{"foo":"bar"}}]}' "http://rest-proxy:8082/topics/quickstart.sampleData"
+
+curl -X DELETE http://kafka-connect:8083/connectors/mongo-source
+
+mongosh --host msuserupdate-mongodb:27017
+
+curl -X POST -H "Content-Type: application/json" --data '{"name": "mongo-sink","config": {"connector.class":"com.mongodb.kafka.connect.MongoSinkConnector","connection.uri":"mongodb://msuserupdate-mongodb:27017/", "database":"quickstart","collection":"topicData", "topics":"data"}}' http://kafka-connect:8083/connectors
+
+curl -X POST -H "Content-Type: application/vnd.kafka.json.v2+json" --data '{"records":[{"value":{"foo":"bar"}}]}' "http://rest-proxy:8082/topics/data"
+
+echo '{"records":[{"value":{"foo":"bar"}}]}'|kafkacat -b kafka:9092 -P -t data
+
+kafka-topics --list --zookeeper 
+
+curl http://rest-proxy:8082/topics/
+
+
+curl -X POST -H "Content-Type: application/json" --data '{"name": "mongo-sink","config": {"connector.class":"com.mongodb.kafka.connect.MongoSinkConnector","connection.uri":"mongodb://msuserupdate-mongodb:27017/", "database":"quickstart", "collection":"topicData", "topics":"data", "value.converter": "org.apache.kafka.connect.json.JsonConverter", "key.converter": "org.apache.kafka.connect.storage.StringConverter", "value.converter.schemas.enable": "false"}}' http://kafka-connect:8083/connectors
+
+
+curl -X POST -H "Content-Type: application/vnd.kafka.json.v2+json" --data '{"records":[{"value":{"foo":"bar"}}]}' "http://rest-proxy:8082/topics/data"
+
+mongosh --host localhost:27017
+
+
+curl -X POST -H "Content-Type: application/vnd.kafka.avro.v2+json" --data '{"key_schema": "{\"type\": \"int\"}", "value_schema": "{\"type\":\"record\",\"name\":\"Student\",\"fields\":[{\"name\":\"studentId\",\"type\":\"int\"},{\"name\":\"studentName\",\"type\":\"string\"},{\"name\":\"height\",\"type\":\"double\"}]}", "records": [{"key":1,"value":{"studentId":1,"studentName":"Chris Chapman","height":1.85}},{"key":1,"value":{"studentId":2,"studentName":"Julia Rudolph","height":1.65}}]}' "http://localhost:8082/topics/students"
+
+
+curl -s -X PUT -H  "Content-Type:application/json" http://localhost:8083/connectors/mongo-connector/config -d '{"connector.class":"com.mongodb.kafka.connect.MongoSinkConnector","connection.uri":"mongodb://msuserupdate-mongodb:27017/", "database":"quickstart", "collection":"studentData", "topics":"students", "value.converter": "io.confluent.connect.avro.AvroConverter", "value.converter.schema.registry.url": "http://schema_registry:8081", "key.converter": "io.confluent.connect.avro.AvroConverter", "key.converter.schema.registry.url": "http://schema_registry:8081"}'
+
+
+curl -X POST -H "Content-Type:application/json" -H "Authorization:Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJhdXRoIjoibWUifQ.4UtUT1uT4sSLFt4k1wYnIIZ7hDSTU9Wu55IuJxDdfBs" -d '{"id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",  "orgId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",  "username": "string",  "firstName": "string",  "lastName": "string",  "email": "string",  "phone": "string",  "userStatus": 0}'  http://localhost:8571/api/users
+curl -v -X POST -H "Content-Type:application/json" -H "Authorization:Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJhdXRoIjoibWUifQ.4UtUT1uT4sSLFt4k1wYnIIZ7hDSTU9Wu55IuJxDdfBs" -d '{"id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",  "orgId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",  "username": "string",  "firstName": "string",  "lastName": "string",  "email": "string",  "phone": "string",  "userStatus": 0}'  http://localhost:8571/api/user
+curl -v -H "Authorization:Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJhdXRoIjoibWUifQ.4UtUT1uT4sSLFt4k1wYnIIZ7hDSTU9Wu55IuJxDdfBs" http://localhost:8571/api/user/status/50dbbadc-0e8a-4d55-9023-e2c57f276f73

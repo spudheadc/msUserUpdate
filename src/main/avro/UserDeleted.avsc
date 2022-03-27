@@ -1,0 +1,13 @@
+{
+    "namespace": "chapman.wattle.id.au.msuserupdate.domain",
+    "type": "record",
+    "name": "UserDeleted",
+    "fields": [
+      {
+        "name": "reason",
+        "type": "string",
+        "doc": "A reason",
+        "default": ""
+      }
+    ]
+  }

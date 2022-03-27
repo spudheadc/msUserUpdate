@@ -1,0 +1,17 @@
+{
+  "changelogDate": "20220316112115",
+  "clientRootFolder": "msUserUpdate",
+  "databaseType": "mongodb",
+  "fields": [
+    {
+      "fieldName": "event",
+      "fieldType": "String"
+    }
+  ],
+  "microserviceName": "msUserUpdate",
+  "name": "Events",
+  "pagination": "no",
+  "readOnly": false,
+  "relationships": [],
+  "service": "no"
+}

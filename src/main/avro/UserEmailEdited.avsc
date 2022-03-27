@@ -1,0 +1,12 @@
+{
+    "namespace": "chapman.wattle.id.au.msuserupdate.domain",
+    "type": "record",
+    "name": "UserEmailEdited",
+    "fields": [
+      {
+        "name": "email",
+        "type": "string",
+        "doc": "The email contact of the user"
+      }
+    ]
+  }

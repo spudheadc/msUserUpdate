@@ -1,0 +1,12 @@
+{
+    "namespace": "chapman.wattle.id.au.msuserupdate.domain",
+    "type": "record",
+    "name": "UserPhoneEdited",
+    "fields": [
+      {
+        "name": "phone",
+        "type": "string",
+        "doc": "The phone number of the user"
+      }
+    ]
+  }

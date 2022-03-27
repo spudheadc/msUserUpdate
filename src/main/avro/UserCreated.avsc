@@ -1,0 +1,43 @@
+{
+    "namespace": "chapman.wattle.id.au.msuserupdate.domain",
+    "type": "record",
+    "name": "UserCreated",
+    "fields": [
+      {
+        "name": "userName",
+        "type": "string",
+        "doc": "The userName used to identify this user"
+      },
+      {
+        "name": "orgId",
+        "type": "string",
+        "doc": "A UUID identifier for the organisation that this user belongs to"
+      },
+      {
+        "name": "firstName",
+        "type": "string",
+        "doc": "The first name of the user"
+      },
+      {
+        "name": "middleName",
+        "type": "string",
+        "default":"",
+        "doc": "The middle name of the user"
+      },
+      {
+        "name": "lastName",
+        "type": "string",
+        "doc": "The surname of the user"
+      },
+      {
+        "name": "email",
+        "type": "string",
+        "doc": "The email contact of the user"
+      },
+      {
+        "name": "phone",
+        "type": "string",
+        "doc": "The phone number of the user"
+      }
+    ]
+  }
