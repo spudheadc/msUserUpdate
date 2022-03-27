@@ -1,5 +1,7 @@
 # msUserUpdate
 
+[![Application CI](https://github.com/spudheadcc/msUserUpdate/actions/workflows/main.yml/badge.svg)](https://github.com/spudheadcc/msUserUpdate/actions/workflows/main.yml)
+
 This application was generated using JHipster 7.7.0, you can find documentation and help at [https://www.jhipster.tech](https://www.jhipster.tech).
 
 This is a "microservice" application intended to be part of a microservice architecture, please refer to the [Doing microservices with JHipster][] page of the documentation for more information.
