@@ -37,10 +37,12 @@ public class UserEventsEntity extends UserEvents {
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public Object mapEvent(Class clazz, Object obj) {
-        if (
-            (obj instanceof LinkedHashMap) && (((LinkedHashMap<String, Object>) obj).get(clazz.getSimpleName()) != null)
-        ) return modelMapper.map(((LinkedHashMap<String, Object>) obj).get(clazz.getSimpleName()), clazz);
+    private Object mapEvent(Class clazz, Object obj) {
+        String className = clazz.getSimpleName();
+        if ((obj instanceof LinkedHashMap) && (((LinkedHashMap<String, Object>) obj).get(className) != null)) return modelMapper.map(
+            ((LinkedHashMap<String, Object>) obj).get(className),
+            clazz
+        );
         return null;
     }
 
@@ -52,14 +54,5 @@ public class UserEventsEntity extends UserEvents {
     @Field
     public String getUserId() {
         return super.getUserId();
-    }
-
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    public boolean isEventOfType(Class clazz) {
-        if (
-            clazz.isInstance(getEvent()) ||
-            ((getEvent() instanceof LinkedHashMap) && (((LinkedHashMap<String, Object>) getEvent()).get(clazz.getSimpleName()) != null))
-        ) return true;
-        return false;
     }
 }
