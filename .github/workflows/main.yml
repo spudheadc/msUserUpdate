@@ -24,6 +24,6 @@ jobs:
       - name: Run backend test
         run: |
           chmod +x gradlew
-           run ci:backend:test
+          npm run ci:backend:test
       - name: Package application
         run: run java:jar:prod
