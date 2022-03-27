@@ -26,4 +26,4 @@ jobs:
           chmod +x gradlew
           npm run ci:backend:test
       - name: Package application
-        run: run java:jar:prod
+        run: npm run java:jar:prod
