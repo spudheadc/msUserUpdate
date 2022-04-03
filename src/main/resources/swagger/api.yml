@@ -126,18 +126,21 @@ paths:
       summary: Deletes a user
       operationId: deleteUser
       parameters:
-        - name: api_key
-          in: header
-          schema:
-            type: string
         - name: userId
           in: path
-          description: User id to delete
+          description: ID of user to return
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       responses:
+        204:
+          description: Succesfull Operation, the user was deleted
+          headers:
+            Location:
+              schema:
+                type: string
+          content: {}
         400:
           description: Invalid ID supplied
           content: {}

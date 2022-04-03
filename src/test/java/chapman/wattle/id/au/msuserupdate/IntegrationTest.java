@@ -14,5 +14,4 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 @SpringBootTest(classes = MsUserUpdateApp.class, webEnvironment = WebEnvironment.RANDOM_PORT)
 @ExtendWith(RedisTestContainerExtension.class)
 @ExtendWith(MongoDbTestContainerExtension.class)
-public @interface IntegrationTest {
-}
+public @interface IntegrationTest {}

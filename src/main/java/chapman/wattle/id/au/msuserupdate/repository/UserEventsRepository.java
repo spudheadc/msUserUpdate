@@ -9,5 +9,5 @@ import org.springframework.stereotype.Repository;
 @SuppressWarnings("unused")
 @Repository
 public interface UserEventsRepository extends MongoRepository<UserEventsEntity, String> {
-    List<UserEventsEntity> findByUserId(String userId);
+  List<UserEventsEntity> findByUserId(String userId);
 }

@@ -9,13 +9,16 @@ import org.testcontainers.containers.MongoDBContainer;
 
 public class TestContainersSpringContextCustomizerFactory implements ContextCustomizerFactory {
 
-    @Override
-    public ContextCustomizer createContextCustomizer(Class<?> testClass, List<ContextConfigurationAttributes> configAttributes) {
-        return (context, mergedConfig) -> {
-            MongoDBContainer container = (MongoDBContainer) MongoDbTestContainerExtension.getThreadContainer().get();
-            if (container != null) {
-                TestPropertyValues.of("spring.data.mongodb.uri=" + container.getReplicaSetUrl()).applyTo(context.getEnvironment());
-            }
-        };
-    }
+  @Override
+  public ContextCustomizer createContextCustomizer(
+      Class<?> testClass, List<ContextConfigurationAttributes> configAttributes) {
+    return (context, mergedConfig) -> {
+      MongoDBContainer container =
+          (MongoDBContainer) MongoDbTestContainerExtension.getThreadContainer().get();
+      if (container != null) {
+        TestPropertyValues.of("spring.data.mongodb.uri=" + container.getReplicaSetUrl())
+            .applyTo(context.getEnvironment());
+      }
+    };
+  }
 }

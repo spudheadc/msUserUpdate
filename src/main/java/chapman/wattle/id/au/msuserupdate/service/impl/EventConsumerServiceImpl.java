@@ -8,5 +8,5 @@ import org.springframework.stereotype.Service;
 @Service
 public class EventConsumerServiceImpl implements EventConsumerService {
 
-    private final Logger log = LoggerFactory.getLogger(EventConsumerServiceImpl.class);
+  private final Logger log = LoggerFactory.getLogger(EventConsumerServiceImpl.class);
 }

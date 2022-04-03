@@ -38,67 +38,65 @@ import tech.jhipster.domain.util.JSR310DateConverters.ZonedDateTimeToDateConvert
 @EnableMongoAuditing(auditorAwareRef = "springSecurityAuditorAware")
 public class DatabaseConfiguration {
 
-    @Bean
-    public ValidatingMongoEventListener validatingMongoEventListener() {
-        return new ValidatingMongoEventListener(validator());
+  @Bean
+  public ValidatingMongoEventListener validatingMongoEventListener() {
+    return new ValidatingMongoEventListener(validator());
+  }
+
+  @Bean
+  public LocalValidatorFactoryBean validator() {
+    return new LocalValidatorFactoryBean();
+  }
+
+  @Bean
+  public MongoCustomConversions customConversions() {
+    List<Converter<?, ?>> converters = new ArrayList<>();
+    converters.add(DateToZonedDateTimeConverter.INSTANCE);
+    converters.add(ZonedDateTimeToDateConverter.INSTANCE);
+    converters.add(UserEventsEntityConverter.INSTANCE);
+    return new MongoCustomConversions(converters);
+  }
+
+  public static class UserEventsEntityConverter implements Converter<Document, UserEventsEntity> {
+
+    public static final UserEventsEntityConverter INSTANCE = new UserEventsEntityConverter();
+
+    private UserEventsEntityConverter() {}
+
+    private ModelMapper modelMapper = new ModelMapper();
+
+    @SuppressWarnings("rawtypes")
+    private static final Class[] CLASSES = {
+      UserCreated.class,
+      UserDeleted.class,
+      UserNameEdited.class,
+      UserPhoneEdited.class,
+      UserEmailEdited.class,
+    };
+
+    @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public UserEventsEntity convert(Document obj) {
+      UserEventsEntity ret = new UserEventsEntity();
+      ret.setCreatedAt(Instant.parse((String) obj.get("createdAt")));
+      ret.setUserId((String) obj.get("userId"));
+      Map<String, Map<String, String>> eventMap = (Map) obj.get("event");
+      List<Object> list =
+          Arrays.stream(CLASSES)
+              .map(clazz -> mapEvent(clazz, eventMap))
+              .filter(entry -> entry != null)
+              .collect(Collectors.toList());
+      ret.setEvent(list.get(0));
+
+      return ret;
     }
 
-    @Bean
-    public LocalValidatorFactoryBean validator() {
-        return new LocalValidatorFactoryBean();
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private Object mapEvent(Class clazz, Object obj) {
+      String className = clazz.getSimpleName();
+      if ((obj instanceof Map) && (((Map<String, Object>) obj).get(className) != null))
+        return modelMapper.map(((Map<String, Object>) obj).get(className), clazz);
+      return null;
     }
-
-    @Bean
-    public MongoCustomConversions customConversions() {
-        List<Converter<?, ?>> converters = new ArrayList<>();
-        converters.add(DateToZonedDateTimeConverter.INSTANCE);
-        converters.add(ZonedDateTimeToDateConverter.INSTANCE);
-        converters.add(UserEventsEntityConverter.INSTANCE);
-        return new MongoCustomConversions(converters);
-    }
-
-    public static class UserEventsEntityConverter implements Converter<Document, UserEventsEntity> {
-
-        public static final UserEventsEntityConverter INSTANCE = new UserEventsEntityConverter();
-
-        private UserEventsEntityConverter() {}
-
-        private ModelMapper modelMapper = new ModelMapper();
-
-        @SuppressWarnings("rawtypes")
-        private static final Class[] CLASSES = {
-            UserCreated.class,
-            UserDeleted.class,
-            UserNameEdited.class,
-            UserPhoneEdited.class,
-            UserEmailEdited.class,
-        };
-
-        @Override
-        @SuppressWarnings({ "unchecked", "rawtypes" })
-        public UserEventsEntity convert(Document obj) {
-            UserEventsEntity ret = new UserEventsEntity();
-            ret.setCreatedAt(Instant.parse((String) obj.get("createdAt")));
-            ret.setUserId((String) obj.get("userId"));
-            Map<String, Map<String, String>> eventMap = (Map) obj.get("event");
-            List<Object> list = Arrays
-                .stream(CLASSES)
-                .map(clazz -> mapEvent(clazz, eventMap))
-                .filter(entry -> entry != null)
-                .collect(Collectors.toList());
-            ret.setEvent(list.get(0));
-
-            return ret;
-        }
-
-        @SuppressWarnings({ "unchecked", "rawtypes" })
-        private Object mapEvent(Class clazz, Object obj) {
-            String className = clazz.getSimpleName();
-            if ((obj instanceof Map) && (((Map<String, Object>) obj).get(className) != null)) return modelMapper.map(
-                ((Map<String, Object>) obj).get(className),
-                clazz
-            );
-            return null;
-        }
-    }
+  }
 }

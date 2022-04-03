@@ -297,9 +297,7 @@ spotless {
 		}
 		importOrder()
 		removeUnusedImports()
-
-		// apply a specific flavor of google-java-format
-		googleJavaFormat('1.13.0').aosp().reflowLongStrings()
+		googleJavaFormat()
 	}
 }
 

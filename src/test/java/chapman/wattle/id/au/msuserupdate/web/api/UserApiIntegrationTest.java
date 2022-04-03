@@ -53,122 +53,149 @@ import org.testcontainers.containers.MongoDBContainer;
 
 @IntegrationTest
 @Timeout(value = 240, unit = TimeUnit.SECONDS)
-@ContextConfiguration(classes = { IntegrationTestConfig.class, ApplicationProperties.class })
+@ContextConfiguration(classes = {IntegrationTestConfig.class, ApplicationProperties.class})
 public class UserApiIntegrationTest {
 
-    private final Logger log = LoggerFactory.getLogger(UserApiIntegrationTest.class);
+  private final Logger log = LoggerFactory.getLogger(UserApiIntegrationTest.class);
 
-    private static final String PHONE_VALUE = "0123456789";
-    private static final String EMAIL_VALUE = "test@test.com";
-    private static final String FIRST_NAME_VALUE = "FirstName";
-    private static final String LAST_NAME_VALUE = "LastName";
-    private static final String USER_NAME_VALUE = "somebloke";
-    private static final String JWT =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJhdXRoIjoibWUifQ.4UtUT1uT4sSLFt4k1wYnIIZ7hDSTU9Wu55IuJxDdfBs";
+  private static final String PHONE_VALUE = "0123456789";
+  private static final String EMAIL_VALUE = "test@test.com";
+  private static final String FIRST_NAME_VALUE = "FirstName";
+  private static final String LAST_NAME_VALUE = "LastName";
+  private static final String USER_NAME_VALUE = "somebloke";
+  private static final String JWT =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJhdXRoIjoibWUifQ.4UtUT1uT4sSLFt4k1wYnIIZ7hDSTU9Wu55IuJxDdfBs";
 
-    @Autowired
-    private KafkaContainer kafkaContainer;
+  @Autowired private KafkaContainer kafkaContainer;
 
-    @Resource(name = "getConsumerProps")
-    private Map<String, Object> consumerProperties;
+  @Resource(name = "getConsumerProps")
+  private Map<String, Object> consumerProperties;
 
-    @LocalServerPort
-    private int port;
+  @LocalServerPort private int port;
 
-    @Autowired
-    private TestRestTemplate restTemplate;
+  @Autowired private TestRestTemplate restTemplate;
 
-    @BeforeEach
-    void setUp() {
-        createTopics(Constants.TOPIC_USER_EVENTS);
-        insertData();
-    }
+  @BeforeEach
+  void setUp() {
+    createTopics(Constants.TOPIC_USER_EVENTS);
+    insertData();
+  }
 
-    private void createTopics(String... topics) {
-        var newTopics = Arrays.stream(topics).map(topic -> new NewTopic(topic, 1, (short) 1)).collect(Collectors.toList());
-        AdminClient admin = AdminClient.create(Map.of(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, getMappedKafkaUrl()));
-        admin.createTopics(newTopics);
-    }
+  private void createTopics(String... topics) {
+    var newTopics =
+        Arrays.stream(topics)
+            .map(topic -> new NewTopic(topic, 1, (short) 1))
+            .collect(Collectors.toList());
+    AdminClient admin =
+        AdminClient.create(Map.of(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, getMappedKafkaUrl()));
+    admin.createTopics(newTopics);
+  }
 
-    private void insertData() {
-        MongoClient mongo = MongoClients.create(
-            ((MongoDBContainer) MongoDbTestContainerExtension.getThreadContainer().get()).getReplicaSetUrl()
-        );
-        MongoDatabase db = mongo.getDatabase("users");
-        MongoCollection<Document> collection = db.getCollection("userEvents");
-        collection.drop();
-        collection.insertOne(TestConstants.CREATED_ENTITY_DOCUMENT);
-    }
+  private void insertData() {
+    MongoClient mongo =
+        MongoClients.create(
+            ((MongoDBContainer) MongoDbTestContainerExtension.getThreadContainer().get())
+                .getReplicaSetUrl());
+    MongoDatabase db = mongo.getDatabase("users");
+    MongoCollection<Document> collection = db.getCollection("userEvents");
+    collection.drop();
+    collection.insertOne(TestConstants.CREATED_ENTITY_DOCUMENT);
+  }
 
-    private String getMappedKafkaUrl() {
-        Integer mappedPort = kafkaContainer.getMappedPort(KafkaContainer.KAFKA_PORT);
-        return String.format("%s:%d", "localhost", mappedPort);
-    }
+  private String getMappedKafkaUrl() {
+    Integer mappedPort = kafkaContainer.getMappedPort(KafkaContainer.KAFKA_PORT);
+    return String.format("%s:%d", "localhost", mappedPort);
+  }
 
-    @Test
-    void addUser() throws Exception {
-        KafkaConsumer<String, UserEvents> consumer = new KafkaConsumer<>(consumerProperties);
-        consumer.subscribe(Collections.singletonList(Constants.TOPIC_USER_EVENTS));
+  @Test
+  void addUser() throws Exception {
+    KafkaConsumer<String, UserEvents> consumer = new KafkaConsumer<>(consumerProperties);
+    consumer.subscribe(Collections.singletonList(Constants.TOPIC_USER_EVENTS));
 
-        User user = new User()
+    User user =
+        new User()
             .username(USER_NAME_VALUE)
             .orgId(UUID.randomUUID())
             .firstName(FIRST_NAME_VALUE)
             .lastName(LAST_NAME_VALUE)
             .email(EMAIL_VALUE)
             .phone(PHONE_VALUE);
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(JWTFilter.AUTHORIZATION_HEADER, "Bearer " + JWT);
-        HttpEntity<User> entity = new HttpEntity<>(user, headers);
-        ResponseEntity<Void> responseEntity = this.restTemplate.postForEntity("http://localhost:" + port + "/api/user", entity, Void.class);
-        assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
+    HttpHeaders headers = new HttpHeaders();
+    headers.add(JWTFilter.AUTHORIZATION_HEADER, "Bearer " + JWT);
+    HttpEntity<User> entity = new HttpEntity<>(user, headers);
+    ResponseEntity<Void> responseEntity =
+        this.restTemplate.postForEntity(
+            "http://localhost:" + port + "/api/user", entity, Void.class);
+    assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
 
-        ConsumerRecords<String, UserEvents> records = consumer.poll(Duration.ofSeconds(1));
-        assertThat(records.count()).isGreaterThan(0);
-        consumer.close();
-    }
+    ConsumerRecords<String, UserEvents> records = consumer.poll(Duration.ofSeconds(1));
+    assertThat(records.count()).isGreaterThan(0);
+    consumer.close();
+  }
 
-    @Test
-    void getUser() throws Exception {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(JWTFilter.AUTHORIZATION_HEADER, "Bearer " + JWT);
-        headers.add(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
+  @Test
+  void getUser() throws Exception {
+    HttpHeaders headers = new HttpHeaders();
+    headers.add(JWTFilter.AUTHORIZATION_HEADER, "Bearer " + JWT);
+    headers.add(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
 
-        HttpEntity<Void> entity = new HttpEntity<>(null, headers);
-        ResponseEntity<User> responseEntity =
-            this.restTemplate.exchange(
-                    "http://localhost:" + port + "/api/user/" + TestConstants.USER_ID.toString(),
-                    HttpMethod.GET,
-                    entity,
-                    User.class
-                );
+    HttpEntity<Void> entity = new HttpEntity<>(null, headers);
+    ResponseEntity<User> responseEntity =
+        this.restTemplate.exchange(
+            "http://localhost:" + port + "/api/user/" + TestConstants.USER_ID.toString(),
+            HttpMethod.GET,
+            entity,
+            User.class);
 
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertEquals(TestConstants.TEST_USER, responseEntity.getBody().getUsername());
-    }
+    assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    assertEquals(TestConstants.TEST_USER, responseEntity.getBody().getUsername());
+  }
 
-    @Test
-    void modifyUser() throws Exception {
-        KafkaConsumer<String, UserEvents> consumer = new KafkaConsumer<>(consumerProperties);
-        consumer.subscribe(Collections.singletonList(Constants.TOPIC_USER_EVENTS));
+  @Test
+  void modifyUser() throws Exception {
+    KafkaConsumer<String, UserEvents> consumer = new KafkaConsumer<>(consumerProperties);
+    consumer.subscribe(Collections.singletonList(Constants.TOPIC_USER_EVENTS));
 
-        UserModify phone = new UserPhoneModify().phone(PHONE_VALUE).updateType(UpdateTypeEnum.USERPHONE);
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(JWTFilter.AUTHORIZATION_HEADER, "Bearer " + JWT);
-        headers.add(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
-        HttpEntity<UserModify> entity = new HttpEntity<>(phone, headers);
+    UserModify phone =
+        new UserPhoneModify().phone(PHONE_VALUE).updateType(UpdateTypeEnum.USERPHONE);
+    HttpHeaders headers = new HttpHeaders();
+    headers.add(JWTFilter.AUTHORIZATION_HEADER, "Bearer " + JWT);
+    headers.add(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
+    HttpEntity<UserModify> entity = new HttpEntity<>(phone, headers);
 
-        ResponseEntity<Void> responseEntity =
-            this.restTemplate.exchange(
-                    "http://localhost:" + port + "/api/user/" + TestConstants.USER_ID.toString(),
-                    HttpMethod.PATCH,
-                    entity,
-                    Void.class
-                );
-        assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
+    ResponseEntity<Void> responseEntity =
+        this.restTemplate.exchange(
+            "http://localhost:" + port + "/api/user/" + TestConstants.USER_ID.toString(),
+            HttpMethod.PATCH,
+            entity,
+            Void.class);
+    assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
 
-        ConsumerRecords<String, UserEvents> records = consumer.poll(Duration.ofSeconds(1));
-        assertThat(records.count()).isGreaterThan(0);
-        consumer.close();
-    }
+    ConsumerRecords<String, UserEvents> records = consumer.poll(Duration.ofSeconds(1));
+    assertThat(records.count()).isGreaterThan(0);
+    consumer.close();
+  }
+
+  @Test
+  void deleteUser() throws Exception {
+    KafkaConsumer<String, UserEvents> consumer = new KafkaConsumer<>(consumerProperties);
+    consumer.subscribe(Collections.singletonList(Constants.TOPIC_USER_EVENTS));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.add(JWTFilter.AUTHORIZATION_HEADER, "Bearer " + JWT);
+    headers.add(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
+    HttpEntity<Void> entity = new HttpEntity<>(null, headers);
+
+    ResponseEntity<Void> responseEntity =
+        this.restTemplate.exchange(
+            "http://localhost:" + port + "/api/user/" + TestConstants.USER_ID.toString(),
+            HttpMethod.DELETE,
+            entity,
+            Void.class);
+    assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
+
+    ConsumerRecords<String, UserEvents> records = consumer.poll(Duration.ofSeconds(1));
+    assertThat(records.count()).isGreaterThan(0);
+    consumer.close();
+  }
 }

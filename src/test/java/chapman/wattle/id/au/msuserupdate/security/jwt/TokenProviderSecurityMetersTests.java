@@ -26,133 +26,184 @@ import tech.jhipster.config.JHipsterProperties;
 
 class TokenProviderSecurityMetersTests {
 
-    private static final long ONE_MINUTE = 60000;
-    private static final String INVALID_TOKENS_METER_EXPECTED_NAME = "security.authentication.invalid-tokens";
+  private static final long ONE_MINUTE = 60000;
+  private static final String INVALID_TOKENS_METER_EXPECTED_NAME =
+      "security.authentication.invalid-tokens";
 
-    private MeterRegistry meterRegistry;
+  private MeterRegistry meterRegistry;
 
-    private TokenProvider tokenProvider;
+  private TokenProvider tokenProvider;
 
-    @BeforeEach
-    public void setup() {
-        JHipsterProperties jHipsterProperties = new JHipsterProperties();
-        String base64Secret = "fd54a45s65fds737b9aafcb3412e07ed99b267f33413274720ddbb7f6c5e64e9f14075f2d7ed041592f0b7657baf8";
-        jHipsterProperties.getSecurity().getAuthentication().getJwt().setBase64Secret(base64Secret);
+  @BeforeEach
+  public void setup() {
+    JHipsterProperties jHipsterProperties = new JHipsterProperties();
+    String base64Secret =
+        "fd54a45s65fds737b9aafcb3412e07ed99b267f33413274720ddbb7f6c5e64e9f14075f2d7ed041592f0b7657baf8";
+    jHipsterProperties.getSecurity().getAuthentication().getJwt().setBase64Secret(base64Secret);
 
-        meterRegistry = new SimpleMeterRegistry();
+    meterRegistry = new SimpleMeterRegistry();
 
-        SecurityMetersService securityMetersService = new SecurityMetersService(meterRegistry);
+    SecurityMetersService securityMetersService = new SecurityMetersService(meterRegistry);
 
-        tokenProvider = new TokenProvider(jHipsterProperties, securityMetersService);
-        Key key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(base64Secret));
+    tokenProvider = new TokenProvider(jHipsterProperties, securityMetersService);
+    Key key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(base64Secret));
 
-        ReflectionTestUtils.setField(tokenProvider, "key", key);
-        ReflectionTestUtils.setField(tokenProvider, "tokenValidityInMilliseconds", ONE_MINUTE);
-    }
+    ReflectionTestUtils.setField(tokenProvider, "key", key);
+    ReflectionTestUtils.setField(tokenProvider, "tokenValidityInMilliseconds", ONE_MINUTE);
+  }
 
-    @Test
-    void testValidTokenShouldNotCountAnything() {
-        Collection<Counter> counters = meterRegistry.find(INVALID_TOKENS_METER_EXPECTED_NAME).counters();
+  @Test
+  void testValidTokenShouldNotCountAnything() {
+    Collection<Counter> counters =
+        meterRegistry.find(INVALID_TOKENS_METER_EXPECTED_NAME).counters();
 
-        assertThat(aggregate(counters)).isZero();
+    assertThat(aggregate(counters)).isZero();
 
-        String validToken = createValidToken();
+    String validToken = createValidToken();
 
-        tokenProvider.validateToken(validToken);
+    tokenProvider.validateToken(validToken);
 
-        assertThat(aggregate(counters)).isZero();
-    }
+    assertThat(aggregate(counters)).isZero();
+  }
 
-    @Test
-    void testTokenExpiredCount() {
-        assertThat(meterRegistry.get(INVALID_TOKENS_METER_EXPECTED_NAME).tag("cause", "expired").counter().count()).isZero();
+  @Test
+  void testTokenExpiredCount() {
+    assertThat(
+            meterRegistry
+                .get(INVALID_TOKENS_METER_EXPECTED_NAME)
+                .tag("cause", "expired")
+                .counter()
+                .count())
+        .isZero();
 
-        String expiredToken = createExpiredToken();
+    String expiredToken = createExpiredToken();
 
-        tokenProvider.validateToken(expiredToken);
+    tokenProvider.validateToken(expiredToken);
 
-        assertThat(meterRegistry.get(INVALID_TOKENS_METER_EXPECTED_NAME).tag("cause", "expired").counter().count()).isEqualTo(1);
-    }
+    assertThat(
+            meterRegistry
+                .get(INVALID_TOKENS_METER_EXPECTED_NAME)
+                .tag("cause", "expired")
+                .counter()
+                .count())
+        .isEqualTo(1);
+  }
 
-    @Test
-    void testTokenUnsupportedCount() {
-        assertThat(meterRegistry.get(INVALID_TOKENS_METER_EXPECTED_NAME).tag("cause", "unsupported").counter().count()).isZero();
+  @Test
+  void testTokenUnsupportedCount() {
+    assertThat(
+            meterRegistry
+                .get(INVALID_TOKENS_METER_EXPECTED_NAME)
+                .tag("cause", "unsupported")
+                .counter()
+                .count())
+        .isZero();
 
-        String unsupportedToken = createUnsupportedToken();
+    String unsupportedToken = createUnsupportedToken();
 
-        tokenProvider.validateToken(unsupportedToken);
+    tokenProvider.validateToken(unsupportedToken);
 
-        assertThat(meterRegistry.get(INVALID_TOKENS_METER_EXPECTED_NAME).tag("cause", "unsupported").counter().count()).isEqualTo(1);
-    }
+    assertThat(
+            meterRegistry
+                .get(INVALID_TOKENS_METER_EXPECTED_NAME)
+                .tag("cause", "unsupported")
+                .counter()
+                .count())
+        .isEqualTo(1);
+  }
 
-    @Test
-    void testTokenSignatureInvalidCount() {
-        assertThat(meterRegistry.get(INVALID_TOKENS_METER_EXPECTED_NAME).tag("cause", "invalid-signature").counter().count()).isZero();
+  @Test
+  void testTokenSignatureInvalidCount() {
+    assertThat(
+            meterRegistry
+                .get(INVALID_TOKENS_METER_EXPECTED_NAME)
+                .tag("cause", "invalid-signature")
+                .counter()
+                .count())
+        .isZero();
 
-        String tokenWithDifferentSignature = createTokenWithDifferentSignature();
+    String tokenWithDifferentSignature = createTokenWithDifferentSignature();
 
-        tokenProvider.validateToken(tokenWithDifferentSignature);
+    tokenProvider.validateToken(tokenWithDifferentSignature);
 
-        assertThat(meterRegistry.get(INVALID_TOKENS_METER_EXPECTED_NAME).tag("cause", "invalid-signature").counter().count()).isEqualTo(1);
-    }
+    assertThat(
+            meterRegistry
+                .get(INVALID_TOKENS_METER_EXPECTED_NAME)
+                .tag("cause", "invalid-signature")
+                .counter()
+                .count())
+        .isEqualTo(1);
+  }
 
-    @Test
-    void testTokenMalformedCount() {
-        assertThat(meterRegistry.get(INVALID_TOKENS_METER_EXPECTED_NAME).tag("cause", "malformed").counter().count()).isZero();
+  @Test
+  void testTokenMalformedCount() {
+    assertThat(
+            meterRegistry
+                .get(INVALID_TOKENS_METER_EXPECTED_NAME)
+                .tag("cause", "malformed")
+                .counter()
+                .count())
+        .isZero();
 
-        String malformedToken = createMalformedToken();
+    String malformedToken = createMalformedToken();
 
-        tokenProvider.validateToken(malformedToken);
+    tokenProvider.validateToken(malformedToken);
 
-        assertThat(meterRegistry.get(INVALID_TOKENS_METER_EXPECTED_NAME).tag("cause", "malformed").counter().count()).isEqualTo(1);
-    }
+    assertThat(
+            meterRegistry
+                .get(INVALID_TOKENS_METER_EXPECTED_NAME)
+                .tag("cause", "malformed")
+                .counter()
+                .count())
+        .isEqualTo(1);
+  }
 
-    private String createValidToken() {
-        Authentication authentication = createAuthentication();
+  private String createValidToken() {
+    Authentication authentication = createAuthentication();
 
-        return tokenProvider.createToken(authentication, false);
-    }
+    return tokenProvider.createToken(authentication, false);
+  }
 
-    private String createExpiredToken() {
-        ReflectionTestUtils.setField(tokenProvider, "tokenValidityInMilliseconds", -ONE_MINUTE);
+  private String createExpiredToken() {
+    ReflectionTestUtils.setField(tokenProvider, "tokenValidityInMilliseconds", -ONE_MINUTE);
 
-        Authentication authentication = createAuthentication();
+    Authentication authentication = createAuthentication();
 
-        return tokenProvider.createToken(authentication, false);
-    }
+    return tokenProvider.createToken(authentication, false);
+  }
 
-    private Authentication createAuthentication() {
-        Collection<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority(AuthoritiesConstants.ANONYMOUS));
-        return new UsernamePasswordAuthenticationToken("anonymous", "anonymous", authorities);
-    }
+  private Authentication createAuthentication() {
+    Collection<GrantedAuthority> authorities = new ArrayList<>();
+    authorities.add(new SimpleGrantedAuthority(AuthoritiesConstants.ANONYMOUS));
+    return new UsernamePasswordAuthenticationToken("anonymous", "anonymous", authorities);
+  }
 
-    private String createUnsupportedToken() {
-        Key key = (Key) ReflectionTestUtils.getField(tokenProvider, "key");
+  private String createUnsupportedToken() {
+    Key key = (Key) ReflectionTestUtils.getField(tokenProvider, "key");
 
-        return Jwts.builder().setPayload("payload").signWith(key, SignatureAlgorithm.HS256).compact();
-    }
+    return Jwts.builder().setPayload("payload").signWith(key, SignatureAlgorithm.HS256).compact();
+  }
 
-    private String createMalformedToken() {
-        String validToken = createValidToken();
+  private String createMalformedToken() {
+    String validToken = createValidToken();
 
-        return "X" + validToken;
-    }
+    return "X" + validToken;
+  }
 
-    private String createTokenWithDifferentSignature() {
-        Key otherKey = Keys.hmacShaKeyFor(
-            Decoders.BASE64.decode("Xfd54a45s65fds737b9aafcb3412e07ed99b267f33413274720ddbb7f6c5e64e9f14075f2d7ed041592f0b7657baf8")
-        );
+  private String createTokenWithDifferentSignature() {
+    Key otherKey =
+        Keys.hmacShaKeyFor(
+            Decoders.BASE64.decode(
+                "Xfd54a45s65fds737b9aafcb3412e07ed99b267f33413274720ddbb7f6c5e64e9f14075f2d7ed041592f0b7657baf8"));
 
-        return Jwts
-            .builder()
-            .setSubject("anonymous")
-            .signWith(otherKey, SignatureAlgorithm.HS512)
-            .setExpiration(new Date(new Date().getTime() + ONE_MINUTE))
-            .compact();
-    }
+    return Jwts.builder()
+        .setSubject("anonymous")
+        .signWith(otherKey, SignatureAlgorithm.HS512)
+        .setExpiration(new Date(new Date().getTime() + ONE_MINUTE))
+        .compact();
+  }
 
-    private double aggregate(Collection<Counter> counters) {
-        return counters.stream().mapToDouble(Counter::count).sum();
-    }
+  private double aggregate(Collection<Counter> counters) {
+    return counters.stream().mapToDouble(Counter::count).sum();
+  }
 }

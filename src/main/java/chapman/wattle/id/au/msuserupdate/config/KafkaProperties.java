@@ -12,62 +12,62 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "kafka")
 public class KafkaProperties {
 
-    private String bootStrapServers = "localhost:9092";
+  private String bootStrapServers = "localhost:9092";
 
-    private String schemaRegistryUrl = "localhost:8081";
+  private String schemaRegistryUrl = "localhost:8081";
 
-    private Map<String, String> consumer = new HashMap<>();
+  private Map<String, String> consumer = new HashMap<>();
 
-    private Map<String, String> producer = new HashMap<>();
+  private Map<String, String> producer = new HashMap<>();
 
-    public String getBootStrapServers() {
-        return bootStrapServers;
+  public String getBootStrapServers() {
+    return bootStrapServers;
+  }
+
+  public void setBootStrapServers(String bootStrapServers) {
+    this.bootStrapServers = bootStrapServers;
+  }
+
+  public Map<String, Object> getConsumerProps() {
+    Map<String, Object> properties = new HashMap<>(this.consumer);
+    if (!properties.containsKey("bootstrap.servers")) {
+      properties.put("bootstrap.servers", this.bootStrapServers);
     }
-
-    public void setBootStrapServers(String bootStrapServers) {
-        this.bootStrapServers = bootStrapServers;
+    if (!properties.containsKey("schema.registry.url")) {
+      properties.put("schema.registry.url", this.schemaRegistryUrl);
     }
+    return properties;
+  }
 
-    public Map<String, Object> getConsumerProps() {
-        Map<String, Object> properties = new HashMap<>(this.consumer);
-        if (!properties.containsKey("bootstrap.servers")) {
-            properties.put("bootstrap.servers", this.bootStrapServers);
-        }
-        if (!properties.containsKey("schema.registry.url")) {
-            properties.put("schema.registry.url", this.schemaRegistryUrl);
-        }
-        return properties;
-    }
+  public void setConsumer(Map<String, String> consumer) {
+    this.consumer = consumer;
+  }
 
-    public void setConsumer(Map<String, String> consumer) {
-        this.consumer = consumer;
+  public Map<String, Object> getProducerProps() {
+    Map<String, Object> properties = new HashMap<>(this.producer);
+    if (!properties.containsKey("bootstrap.servers")) {
+      properties.put("bootstrap.servers", this.bootStrapServers);
     }
+    if (!properties.containsKey("schema.registry.url")) {
+      properties.put("schema.registry.url", this.schemaRegistryUrl);
+    }
+    return properties;
+  }
 
-    public Map<String, Object> getProducerProps() {
-        Map<String, Object> properties = new HashMap<>(this.producer);
-        if (!properties.containsKey("bootstrap.servers")) {
-            properties.put("bootstrap.servers", this.bootStrapServers);
-        }
-        if (!properties.containsKey("schema.registry.url")) {
-            properties.put("schema.registry.url", this.schemaRegistryUrl);
-        }
-        return properties;
-    }
+  public void setProducer(Map<String, String> producer) {
+    this.producer = producer;
+  }
 
-    public void setProducer(Map<String, String> producer) {
-        this.producer = producer;
-    }
+  public String getSchemaRegistryUrl() {
+    return schemaRegistryUrl;
+  }
 
-    public String getSchemaRegistryUrl() {
-        return schemaRegistryUrl;
-    }
+  public void setSchemaRegistryUrl(String schemaRegistry) {
+    this.schemaRegistryUrl = schemaRegistry;
+  }
 
-    public void setSchemaRegistryUrl(String schemaRegistry) {
-        this.schemaRegistryUrl = schemaRegistry;
-    }
-
-    @Bean
-    public KafkaProducer<String, UserEvents> eventProducer() {
-        return new KafkaProducer<>(getProducerProps());
-    }
+  @Bean
+  public KafkaProducer<String, UserEvents> eventProducer() {
+    return new KafkaProducer<>(getProducerProps());
+  }
 }

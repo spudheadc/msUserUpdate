@@ -7,18 +7,18 @@ import org.springframework.data.mongodb.core.mapping.Field;
 @Document(collection = "userEvents")
 public class UserEventsEntity extends UserEvents {
 
-    @Field
-    public Object getEvent() {
-        return super.getEvent();
-    }
+  @Field
+  public Object getEvent() {
+    return super.getEvent();
+  }
 
-    @Field
-    public Instant getCreatedAt() {
-        return super.getCreatedAt();
-    }
+  @Field
+  public Instant getCreatedAt() {
+    return super.getCreatedAt();
+  }
 
-    @Field
-    public String getUserId() {
-        return super.getUserId();
-    }
+  @Field
+  public String getUserId() {
+    return super.getUserId();
+  }
 }
