@@ -38,6 +38,8 @@ spring:
     serialization:
       write-durations-as-timestamps: false
   data:
+    mongodb:
+      database: users
   mail:
     host: localhost
   main:
@@ -110,3 +112,11 @@ kafka:
 # ===================================================================
 
 # application:
+
+logging:
+  level:
+    ROOT: INFO
+    tech.jhipster: INFO
+    org.hibernate.SQL: INFO
+    chapman.wattle.id.au.msuserupdate: DEBUG
+    org.springframework.data.mongodb: DEBUG

@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 import chapman.wattle.id.au.msuserupdate.TestConstants;
 import chapman.wattle.id.au.msuserupdate.service.UserService;
 import chapman.wattle.id.au.msuserupdate.service.api.dto.User;
+import chapman.wattle.id.au.msuserupdate.service.api.dto.UserModify;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -76,5 +77,19 @@ class UserApiDelegateServiceImplTest {
 
         ResponseEntity<User> entity = delegate.getUserById(TestConstants.USER_ID);
         assertEquals(HttpStatus.OK, entity.getStatusCode());
+    }
+
+    @Test
+    public void testModifyUserSuccess() {
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(new MockHttpServletRequest()));
+
+        UserModify body = new UserModify();
+
+        doNothing().when(userService).modifyUser(TestConstants.USER_ID, body);
+
+        UserApiDelegateServiceImpl delegate = new UserApiDelegateServiceImpl(userService);
+
+        ResponseEntity<Void> entity = delegate.updateUser(TestConstants.USER_ID, body);
+        assertEquals(HttpStatus.NO_CONTENT, entity.getStatusCode());
     }
 }

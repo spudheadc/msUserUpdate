@@ -47,7 +47,6 @@ paths:
       security:
         - jwt:
             - write:users
-            - read:users
       x-codegen-request-body-name: body
   /user/{userId}:
     get:
@@ -81,8 +80,9 @@ paths:
           description: User not found
           content: {}
       security:
-        - api_key: []
-    put:
+        - jwt:
+            - read:users
+    patch:
       tags:
         - user
       summary: Updates a user in the store with form data
@@ -100,19 +100,25 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/UserModify'
           application/xml:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/UserModify'
         required: true
       responses:
+        204:
+          description: Succesfull Operation, the user was amended
+          headers:
+            Location:
+              schema:
+                type: string
+          content: {}
         405:
           description: Invalid input
           content: {}
       security:
         - jwt:
             - write:users
-            - read:users
       x-codegen-request-body-name: body
     delete:
       tags:
@@ -153,6 +159,10 @@ components:
   schemas:
     User:
       type: object
+      allOf:
+        - $ref: '#/components/schemas/UserName'
+        - $ref: '#/components/schemas/UserPhone'
+        - $ref: '#/components/schemas/UserEmail'
       properties:
         id:
           type: string
@@ -164,34 +174,76 @@ components:
           maxLength: 20
           minLength: 6
           type: string
+      required:
+        - orgId
+        - username
+      xml:
+        name: User
+
+    UserModify:
+      type: object
+      discriminator:
+        propertyName: updateType
+        mapping:
+          UserName: '#/components/schemas/UserNameModify'
+          UserPhone: '#/components/schemas/UserPhoneModify'
+          UserEmail: '#/components/schemas/UserEmailModify'
+      properties:
+        updateType:
+          type: string
+          enum:
+            - UserName
+            - UserPhone
+            - UserEmail
+      required:
+        - updateType
+
+    UserNameModify:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/UserModify'
+        - $ref: '#/components/schemas/UserName'
+
+    UserName:
+      type: object
+      properties:
         firstName:
           type: string
         middleName:
           type: string
         lastName:
           type: string
-        email:
-          type: string
-        phone:
-          type: string
-        userStatus:
-          type: integer
-          description: User Status
-          format: int32
-      xml:
-        name: User
-    UserStatus:
+      required:
+        - firstName
+        - lastName
+
+    UserPhoneModify:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/UserModify'
+        - $ref: '#/components/schemas/UserPhone'
+
+    UserPhone:
       type: object
       properties:
-        id:
+        phone:
           type: string
-          format: uuid
-        username:
+      required:
+        - phone
+
+    UserEmailModify:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/UserModify'
+        - $ref: '#/components/schemas/UserEmail'
+
+    UserEmail:
+      type: object
+      properties:
+        email:
           type: string
-        statusCode:
-          type: integer
-        statusReason:
-          type: string
+      required:
+        - email
 
   securitySchemes:
     jwt:

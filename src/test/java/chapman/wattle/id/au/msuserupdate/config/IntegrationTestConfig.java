@@ -39,6 +39,7 @@ public class IntegrationTestConfig {
     @Bean
     public Map<String, Object> getProducerProps() {
         Map<String, Object> producerProps = new HashMap<>();
+        producerProps.put("client.id", "TestProducer");
         producerProps.put("key.serializer", "io.confluent.kafka.serializers.KafkaAvroSerializer");
         producerProps.put("value.serializer", "io.confluent.kafka.serializers.KafkaAvroSerializer");
         producerProps.put("value.serializer", "io.confluent.kafka.serializers.KafkaAvroSerializer");

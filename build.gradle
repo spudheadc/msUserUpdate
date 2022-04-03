@@ -290,11 +290,11 @@ spotless {
 		endWithNewline()
 	}
 	java {
-        
-        target project.fileTree(project.rootDir) {
-            include '**/*.java'
-            exclude 'build/**/*.*'
-        }
+
+		target project.fileTree(project.rootDir) {
+			include '**/*.java'
+			exclude 'build/**/*.*'
+		}
 		importOrder()
 		removeUnusedImports()
 

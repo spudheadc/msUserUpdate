@@ -1,7 +1,9 @@
 package chapman.wattle.id.au.msuserupdate.web.api;
 
+import chapman.wattle.id.au.msuserupdate.service.UserException;
 import chapman.wattle.id.au.msuserupdate.service.UserService;
 import chapman.wattle.id.au.msuserupdate.service.api.dto.User;
+import chapman.wattle.id.au.msuserupdate.service.api.dto.UserModify;
 import java.net.URI;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -25,7 +27,6 @@ public class UserApiDelegateServiceImpl implements UserApiDelegate {
     @Override
     public ResponseEntity<Void> addUser(User user) {
         UUID userId = UUID.nameUUIDFromBytes(user.getUsername().getBytes());
-
         if (userService.getUser(userId) != null) return ResponseEntity.status(HttpStatus.SEE_OTHER).headers(getUserURI(userId)).build();
 
         userService.addUser(user);
@@ -52,11 +53,14 @@ public class UserApiDelegateServiceImpl implements UserApiDelegate {
 
     @Override
     public ResponseEntity<User> getUserById(UUID userId) {
-        return ResponseEntity.ok(userService.getUser(userId));
+        User user = userService.getUser(userId);
+        if (user == null) throw new UserException("User doesn't exist");
+        return ResponseEntity.ok(user);
     }
 
     @Override
-    public ResponseEntity<Void> updateUser(UUID userId, User body) {
-        return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+    public ResponseEntity<Void> updateUser(UUID userId, UserModify body) {
+        userService.modifyUser(userId, body);
+        return ResponseEntity.noContent().headers(getUserURI(userId)).build();
     }
 }
